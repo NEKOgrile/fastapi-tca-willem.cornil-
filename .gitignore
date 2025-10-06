@@ -8,3 +8,6 @@ __pycache__/
 # Ignorer fichiers pycache partout
 **/__pycache__/
 **/*.pyc
+
+# Ignorer fichiers personnels et de configuration
+identifiant.json
