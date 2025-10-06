@@ -154,27 +154,39 @@ Ci-dessous un résumé des tâches déjà effectuées et de celles encore à ré
 - [ ] Restreindre l’accès à tous les endpoints de l’API (sauf signup/login)
 
 #### 🗺️ Gestion du réseau de transport (Priorité haute)
+
 - ✅ Créer les **modèles SQLModel** : `Category`, `TransportLine`, `Stop`
+
 - ✅ Créer les **schemas Pydantic** correspondants dans `schemas/`
-- [ ] Routes implémentées / à implémenter :
+
+- Routes implémentées / à implémenter :
+
+  **Catégories :**
+  
   - ✅ `POST /api/creat/category` → création d’une catégorie
   - ✅ `GET /api/category/{id}` → lecture d’une catégorie par ID
   - ✅ `PUT /api/update/category/{id}` → mise à jour d’une catégorie
   - ✅ `DELETE /api/delete/category/{id}` → suppression d’une catégorie
   - ✅ `GET /api/allcategory` → liste de toutes les catégories
 
+  **Lignes de transport :**
+  
   - ✅ `POST /api/creat/line` → création d’une ligne de transport
   - ✅ `GET /api/line/{id}` → détails d’une ligne (heures, catégorie)
   - ✅ `PUT /api/update/line/{id}` → mise à jour d’une ligne
   - ✅ `DELETE /api/delete/line/{id}` → suppression d’une ligne (ne supprime pas les arrêts liés)
   - ✅ `GET /api/allline` → liste de toutes les lignes
 
+  **Arrêts :**
+  
   - ✅ `POST /api/creat/stop` → création d’un arrêt
   - ✅ `GET /api/stop/{id}` → lecture d’un arrêt par ID
   - ✅ `PUT /api/update/stop/{id}` → mise à jour d’un arrêt
   - ✅ `DELETE /api/delete/stop/{id}` → suppression d’un arrêt
   - ✅ `GET /api/allstop` → liste de tous les arrêts
 
+  **Routes avancées à implémenter :**
+  
   - [ ] `GET /api/categories/{id}/lines` → lister toutes les lignes d’une catégorie
   - [ ] `GET /api/lines/{id}/stops` → lister tous les arrêts d’une ligne
   - [ ] `POST /api/lines/{id}/stops` → ajouter un arrêt sur une ligne
