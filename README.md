@@ -134,14 +134,27 @@ Ci-dessous un résumé des tâches déjà effectuées et de celles encore à ré
 
 ---
 
+## ✅ État d’avancement du projet
+
+Ce projet est en cours de développement pour répondre au cahier des charges du projet **TISSÉA**.  
+Ci-dessous un résumé des tâches déjà effectuées et de celles encore à réaliser.
+
+---
+
 ### 🧩 Fonctionnalités terminées
 
 - ✅ **Structure FastAPI** opérationnelle (`main.py`, `database.py`, arborescence models/schemas/routers)
+
 - ✅ **Connexion à MariaDB** via SQLModel et identifiant.json
+
 - ✅ **CRUD complet pour les utilisateurs**
+
 - ✅ **Hashage SHA256** des mots de passe (à remplacer par bcrypt pour la version finale)
+
 - ✅ **Création automatique des tables au démarrage**
+
 - ✅ **Test API fonctionnel** via `/docs`
+
 - ✅ **Base de données complète importée** (categories, transport_lines, stops, users)
 
 ---
@@ -149,9 +162,10 @@ Ci-dessous un résumé des tâches déjà effectuées et de celles encore à ré
 ### 🚧 Fonctionnalités à implémenter
 
 #### 🔐 Authentification & Sécurité (Priorité haute)
-- [ ] Ajouter la **connexion utilisateur** (`/api/users/login`)
-- [ ] Implémenter **JWT** (connexion, vérification, dépendance `get_current_user`)
-- [ ] Restreindre l’accès à tous les endpoints de l’API (sauf signup/login)
+
+- ❌ Ajouter la **connexion utilisateur** (`/api/users/login`)
+- ❌ Implémenter **JWT** (connexion, vérification, dépendance `get_current_user`)
+- ❌ Restreindre l’accès à tous les endpoints de l’API (sauf signup/login)
 
 #### 🗺️ Gestion du réseau de transport (Priorité haute)
 
@@ -192,36 +206,50 @@ Ci-dessous un résumé des tâches déjà effectuées et de celles encore à ré
   - ❌ `POST /api/lines/{id}/stops` → ajouter un arrêt sur une ligne
   - ❌ `DELETE /api/lines/{line_id}/stops/{stop_id}` → suppression d’un arrêt d’une ligne (pour l’instant, `/api/delete/stop/{id}` supprime l’arrêt directement)
 
-
-
 #### 📏 Statistiques et calculs (Priorité moyenne)
-- [ ] `GET /api/stats/distance/stops/{id1}/{id2}` → calcul de la distance entre deux arrêts  
-- [ ] `GET /api/stats/distance/lines/{id}` → calcul de la distance totale d’une ligne  
-- [ ] Utiliser la librairie **geopy** (`geodesic`) pour les distances GPS  
+
+- ❌ `GET /api/stats/distance/stops/{id1}/{id2}` → calcul de la distance entre deux arrêts  
+
+- ❌ `GET /api/stats/distance/lines/{id}` → calcul de la distance totale d’une ligne  
+
+- ❌ Utiliser la librairie **geopy** (`geodesic`) pour les distances GPS  
 
 #### 🖥️ Mini-Frontend (Priorité moyenne)
-- [ ] Page **Accueil**
-- [ ] Page **Inscription / Connexion**
-- [ ] Page **Carte Leaflet** affichant au moins une ligne (ex. Métro B)
-- [ ] Appels API sécurisés avec token JWT
+
+- ❌ Page **Accueil**
+
+- ❌ Page **Inscription / Connexion**
+
+- ❌ Page **Carte Leaflet** affichant au moins une ligne (ex. Métro B)
+
+- ❌ Appels API sécurisés avec token JWT
 
 #### 🧪 Tests & Documentation (Priorité basse)
-- [ ] Tests unitaires (`pytest` ou `Vitest` selon choix)
-- [ ] Dossier `docs/` avec :
+
+- ❌ Tests unitaires (`pytest` ou `Vitest` selon choix)
+
+- ❌ Dossier `docs/` avec :
   - Schéma de la base de données
   - Documentation API (OpenAPI + résumé manuel)
-- [ ] Préparer le **diaporama de soutenance**
+
+- ❌ Préparer le **diaporama de soutenance**
 
 ---
 
 ### 🧭 Ordre recommandé de développement
 
 1️⃣ → **Ajouter JWT & route de connexion**  
+
 2️⃣ → **Créer les modèles Category / Line / Stop**  
+
 3️⃣ → **Implémenter les endpoints REST principaux**  
+
 4️⃣ → **Tester les routes `/stats/distance/...`**  
+
 5️⃣ → **Protéger tous les endpoints par JWT**  
+
 6️⃣ → **Créer le mini-frontend Leaflet**  
+
 7️⃣ → **Finaliser la documentation et la soutenance**
 
 ---
@@ -234,4 +262,5 @@ Ci-dessous un résumé des tâches déjà effectuées et de celles encore à ré
 > - Ajout de `/api/users/login`
 > - Génération et validation des tokens
 > - Protection des routes avec `Depends(get_current_user)`
+
 
