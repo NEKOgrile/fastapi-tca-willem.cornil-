@@ -127,89 +127,81 @@ node_modules/
 *.pyc
 ```
 
-#########################################
-# 🚀 PROJET FASTAPI - TISSÉA - TODO LIST
-#########################################
+## ✅ État d’avancement du projet
 
-# ===============================
-# ✅ ÉTAPES DÉJÀ RÉALISÉES
-# ===============================
+Ce projet est en cours de développement pour répondre au cahier des charges du projet **TISSÉA**.  
+Ci-dessous un résumé des tâches déjà effectuées et de celles encore à réaliser.
 
-[✅] Structure FastAPI de base fonctionnelle
-[✅] Connexion à MariaDB (SQLModel + identifiant.json)
-[✅] Table "users" (CRUD complet)
-[✅] Hashage des mots de passe (sha256 temporaire)
-[✅] Fichier README clair et structuré
-[✅] Base de données MariaDB opérationnelle :
-      - categories(id, name)
-      - transport_lines(id, name, category_id, start_time, end_time)
-      - stops(id, name, latitude, longitude, stop_order, line_id)
-      - users(id, username, email, hashed_password, created_at)
+---
 
-# ===============================
-# 🔥 ÉTAPES PRIORITAIRES À FAIRE
-# ===============================
+### 🧩 Fonctionnalités terminées
 
-[⬜] Ajouter l’authentification JWT :
-       -> Route POST /api/users/login
-       -> Token JWT + dépendance get_current_user
-       -> Sécuriser toutes les routes API
+- ✅ **Structure FastAPI** opérationnelle (`main.py`, `database.py`, arborescence models/schemas/routers)
+- ✅ **Connexion à MariaDB** via SQLModel et identifiant.json
+- ✅ **CRUD complet pour les utilisateurs**
+- ✅ **Hashage SHA256** des mots de passe (à remplacer par bcrypt pour la version finale)
+- ✅ **Création automatique des tables au démarrage**
+- ✅ **Test API fonctionnel** via `/docs`
+- ✅ **Base de données complète importée** (categories, transport_lines, stops, users)
 
-[⬜] Créer les modèles dans models.py :
-       -> Category (avec ou sans relation lines)
-       -> TransportLine (avec relation category et stops)
-       -> Stop (avec relation line)
+---
 
-[⬜] Créer les schémas correspondants dans schemas.py
+### 🚧 Fonctionnalités à implémenter
 
-[⬜] Implémenter les routes principales :
-       -> GET /api/categories/{id}/lines
-       -> GET /api/lines/{id}
-       -> GET /api/lines/{id}/stops
-       -> POST /api/lines/{id}/stops
-       -> PUT /api/lines/{id}
-       -> DELETE /api/lines/{line_id}/stops/{stop_id}
+#### 🔐 Authentification & Sécurité (Priorité haute)
+- [ ] Ajouter la **connexion utilisateur** (`/api/users/login`)
+- [ ] Implémenter **JWT** (connexion, vérification, dépendance `get_current_user`)
+- [ ] Restreindre l’accès à tous les endpoints de l’API (sauf signup/login)
 
-[⬜] Ajouter les endpoints de calculs de distance :
-       -> GET /api/stats/distance/stops/{id1}/{id2}
-       -> GET /api/stats/distance/lines/{id}
-       -> Utiliser geopy.distance.geodesic()
+#### 🗺️ Gestion du réseau de transport (Priorité haute)
+- [ ] Créer les **modèles SQLModel** : `Category`, `TransportLine`, `Stop`
+- [ ] Créer les **schemas Pydantic** correspondants dans `schemas/`
+- [ ] Implémenter les routes suivantes :
+  - [ ] `GET /api/categories/{id}/lines` → liste des lignes d’une catégorie  
+  - [ ] `GET /api/lines/{id}` → détails d’une ligne (heures, arrêts, etc.)  
+  - [ ] `GET /api/lines/{id}/stops` → liste détaillée des arrêts  
+  - [ ] `POST /api/lines/{id}/stops` → ajout d’un arrêt  
+  - [ ] `PUT /api/lines/{id}` → mise à jour d’une ligne  
+  - [ ] `DELETE /api/lines/{line_id}/stops/{stop_id}` → suppression d’un arrêt  
 
-[⬜] Protéger tous les endpoints (sauf signup/login) avec JWT
+#### 📏 Statistiques et calculs (Priorité moyenne)
+- [ ] `GET /api/stats/distance/stops/{id1}/{id2}` → calcul de la distance entre deux arrêts  
+- [ ] `GET /api/stats/distance/lines/{id}` → calcul de la distance totale d’une ligne  
+- [ ] Utiliser la librairie **geopy** (`geodesic`) pour les distances GPS  
 
-[⬜] Vérifier cohérence entre la BDD MariaDB et les modèles FastAPI
+#### 🖥️ Mini-Frontend (Priorité moyenne)
+- [ ] Page **Accueil**
+- [ ] Page **Inscription / Connexion**
+- [ ] Page **Carte Leaflet** affichant au moins une ligne (ex. Métro B)
+- [ ] Appels API sécurisés avec token JWT
 
-# ===============================
-# 💪 ÉTAPES BONUS / OPTIONNELLES
-# ===============================
+#### 🧪 Tests & Documentation (Priorité basse)
+- [ ] Tests unitaires (`pytest` ou `Vitest` selon choix)
+- [ ] Dossier `docs/` avec :
+  - Schéma de la base de données
+  - Documentation API (OpenAPI + résumé manuel)
+- [ ] Préparer le **diaporama de soutenance**
 
-[⬜] Remplacer hashlib par bcrypt pour sécuriser les mots de passe
-[⬜] Ajouter des tests unitaires avec pytest
-[⬜] Créer un mini frontend (HTML + JS + Leaflet)
-       -> Pages : accueil, inscription, connexion
-       -> Carte affichant les lignes de transport
-[⬜] Ajouter un dossier "docs/" :
-       -> Schéma de la base (diagramme)
-       -> Documentation API
-[⬜] Générer un diaporama de soutenance :
-       -> Présentation du projet
-       -> Modèle de données
-       -> Démo API + Frontend
-       -> Améliorations possibles
+---
 
-# ===============================
-# 🧭 PRIORITÉ DE DÉVELOPPEMENT
-# ===============================
+### 🧭 Ordre recommandé de développement
 
-1️⃣ - Authentification JWT (Login + Sécurité)
-2️⃣ - Modèles + Schémas (Category, Line, Stop)
-3️⃣ - Endpoints REST principaux
-4️⃣ - Calculs de distance avec Geopy
-5️⃣ - Protection JWT sur les routes
-6️⃣ - Mini Frontend Leaflet
-7️⃣ - Tests + Documentation + Soutenance
+1️⃣ → **Ajouter JWT & route de connexion**  
+2️⃣ → **Créer les modèles Category / Line / Stop**  
+3️⃣ → **Implémenter les endpoints REST principaux**  
+4️⃣ → **Tester les routes `/stats/distance/...`**  
+5️⃣ → **Protéger tous les endpoints par JWT**  
+6️⃣ → **Créer le mini-frontend Leaflet**  
+7️⃣ → **Finaliser la documentation et la soutenance**
 
-#########################################
-# 🔚 FIN DU SUIVI DE PROJET TISSÉA
-#########################################
+---
+
+### 🗓️ Prochain objectif
+
+> 🎯 **Prochaine étape : Authentification JWT complète**
+>
+> - Création du module `auth.py`
+> - Ajout de `/api/users/login`
+> - Génération et validation des tokens
+> - Protection des routes avec `Depends(get_current_user)`
 
