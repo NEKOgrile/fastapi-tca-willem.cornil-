@@ -1,4 +1,4 @@
-```
+
 # fastapi-tca-willem.cornil-
 
 Projet FastAPI avec MariaDB, gestion des utilisateurs et structure prête pour extension.
@@ -104,4 +104,4 @@ __pycache__/
 node_modules/
 *.pyc
 ```
-```
+
