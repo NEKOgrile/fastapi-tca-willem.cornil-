@@ -154,8 +154,8 @@ Ci-dessous un résumé des tâches déjà effectuées et de celles encore à ré
 - [ ] Restreindre l’accès à tous les endpoints de l’API (sauf signup/login)
 
 #### 🗺️ Gestion du réseau de transport (Priorité haute)
-- [ ] Créer les **modèles SQLModel** : `Category`, `TransportLine`, `Stop`
-- [ ] Créer les **schemas Pydantic** correspondants dans `schemas/`
+- ✅ Créer les **modèles SQLModel** : `Category`, `TransportLine`, `Stop`
+- ✅ Créer les **schemas Pydantic** correspondants dans `schemas/`
 - [ ] Implémenter les routes suivantes :
   - [ ] `GET /api/categories/{id}/lines` → liste des lignes d’une catégorie  
   - [ ] `GET /api/lines/{id}` → détails d’une ligne (heures, arrêts, etc.)  
