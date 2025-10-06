@@ -11,12 +11,8 @@ class UserRead(SQLModel):
     id: int
     username: str
     email: str
-    
-class UserReadWTF(SQLModel):
-    id: int
-    username: str
-    email: str
-    motsWTF: Optional[str] = None
+    mots: Optional[str] = None
+
     
 class UserUpdate(SQLModel):
     username: Optional[str] = None

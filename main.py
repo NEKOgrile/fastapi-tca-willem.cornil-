@@ -3,7 +3,7 @@ from fastapi import FastAPI, Depends, HTTPException
 from sqlmodel import SQLModel, Session
 from database import engine, get_session
 from models import Users        # ➜ User de la base de données (DB)
-from schemas.schemas import UserCreate, UserRead , UserReadWTF , UserUpdate , UserDelete , UserInDB # ➜ User de l'API
+from schemas.schemas import UserCreate, UserRead , UserUpdate , UserDelete , UserInDB # ➜ User de l'API
 import hashlib  # pour hasher le mot de passe (à remplacer par bcrypt en prod)
 
 app = FastAPI()
@@ -46,7 +46,7 @@ def create_user(user_api: UserCreate, session: Session = Depends(get_session)):
     return db_user
 
 # --- Endpoint GET pour récupérer un utilisateur par ID ---
-@app.get("/users/{user_id}", response_model=UserReadWTF)
+@app.get("/users/{user_id}", response_model=UserRead)
 def get_read_user_wtf(user_id: int, session = Depends(get_session)):
     #ici il vas automatiquement cherche l id car il est en clef primaire et si je voulaist chercher
     # par un autre champ je devrais faire une requete filtrée exemple : 
@@ -55,11 +55,11 @@ def get_read_user_wtf(user_id: int, session = Depends(get_session)):
     if not db_user:
         raise HTTPException(status_code=404, detail="Utilisateur non trouvé")
     
-    # On "transforme" le db_user en schéma UserReadWTF sinon erreur car il manque le champs motsWTF
+    # On "transforme" le db_user en schéma UserRead sinon erreur car il manque le champs motsWTF
     # parceque db_user c est la base de donnée et peut etre qu il y a des champ que l on veux pas 
     #parceque on veux pas afficcher tout (exemple le mot de passe) ou parceque on veux ajouter des champs
     # qui n existe pas dans la base de donnée (exemple motsWTF)
-    user_api = UserReadWTF(
+    user_api = UserRead(
         id=db_user.id,
         username=db_user.username,
         email=db_user.email,
