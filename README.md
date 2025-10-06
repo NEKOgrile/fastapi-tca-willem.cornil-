@@ -134,74 +134,84 @@ Ci-dessous un résumé des tâches déjà effectuées et de celles encore à ré
 
 ---
 
-### 🧩 Fonctionnalités terminées
+#!/bin/bash
 
-- ✅ **Structure FastAPI** opérationnelle (`main.py`, `database.py`, arborescence models/schemas/routers)
-- ✅ **Connexion à MariaDB** via SQLModel et identifiant.json
-- ✅ **CRUD complet pour les utilisateurs**
-- ✅ **Hashage SHA256** des mots de passe (à remplacer par bcrypt pour la version finale)
-- ✅ **Création automatique des tables au démarrage**
-- ✅ **Test API fonctionnel** via `/docs`
-- ✅ **Base de données complète importée** (categories, transport_lines, stops, users)
+cat << 'EOF' > README.md
+# 📘 README – Projet API Tissea
 
----
+## ✅ Ce qui est fait
 
-### 🚧 Fonctionnalités à implémenter
+### 1️⃣ Structure générale
+- FastAPI opérationnel (`main.py`, `database.py`, arborescence `models/` et `schemas/`)  
+- Connexion à MariaDB via SQLModel et `engine`  
+- Création automatique des tables au démarrage avec `SQLModel.metadata.create_all(engine)`  
 
-#### 🔐 Authentification & Sécurité (Priorité haute)
-- [ ] Ajouter la **connexion utilisateur** (`/api/users/login`)
-- [ ] Implémenter **JWT** (connexion, vérification, dépendance `get_current_user`)
-- [ ] Restreindre l’accès à tous les endpoints de l’API (sauf signup/login)
+### 2️⃣ Utilisateurs (Users)
+- **POST /users** → création utilisateur avec hash SHA256 du mot de passe  
+- **GET /users/{id}** → lecture utilisateur par ID  
+- **PUT /update/users/{id}** → mise à jour des champs utilisateur (username, email, password)  
+- **DELETE /delete/users/{id}** → suppression utilisateur  
+- **GET /allusers** → liste de tous les utilisateurs  
+- Gestion des doublons email/username lors de la création et mise à jour  
 
-#### 🗺️ Gestion du réseau de transport (Priorité haute)
-- ✅ Créer les **modèles SQLModel** : `Category`, `TransportLine`, `Stop`
-- ✅ Créer les **schemas Pydantic** correspondants dans `schemas/`
-- [ ] Implémenter les routes suivantes :
-  - [ ] `GET /api/categories/{id}/lines` → liste des lignes d’une catégorie  
-  - [ ] `GET /api/lines/{id}` → détails d’une ligne (heures, arrêts, etc.)  
-  - [ ] `GET /api/lines/{id}/stops` → liste détaillée des arrêts  
-  - [ ] `POST /api/lines/{id}/stops` → ajout d’un arrêt  
-  - [ ] `PUT /api/lines/{id}` → mise à jour d’une ligne  
-  - [ ] `DELETE /api/lines/{line_id}/stops/{stop_id}` → suppression d’un arrêt  
+### 3️⃣ Catégories (Category)
+- **POST /api/creat/category** → création catégorie  
+- **GET /api/category/{id}** → lecture catégorie par ID  
+- **PUT /api/update/category/{id}** → mise à jour catégorie  
+- **DELETE /api/delete/category/{id}** → suppression catégorie  
+- **GET /api/allcategory** → liste de toutes les catégories  
 
-#### 📏 Statistiques et calculs (Priorité moyenne)
-- [ ] `GET /api/stats/distance/stops/{id1}/{id2}` → calcul de la distance entre deux arrêts  
-- [ ] `GET /api/stats/distance/lines/{id}` → calcul de la distance totale d’une ligne  
-- [ ] Utiliser la librairie **geopy** (`geodesic`) pour les distances GPS  
+### 4️⃣ Lignes de transport (TransportLine)
+- **POST /api/creat/line** → création ligne de transport (avec vérification de la catégorie)  
+- **GET /api/line/{id}** → lecture ligne par ID  
+- **PUT /api/update/line/{id}** → mise à jour ligne de transport  
+- **DELETE /api/delete/line/{id}** → suppression ligne (simple, ne supprime pas les arrêts liés)  
+- **GET /api/allline** → liste de toutes les lignes  
 
-#### 🖥️ Mini-Frontend (Priorité moyenne)
-- [ ] Page **Accueil**
-- [ ] Page **Inscription / Connexion**
-- [ ] Page **Carte Leaflet** affichant au moins une ligne (ex. Métro B)
-- [ ] Appels API sécurisés avec token JWT
-
-#### 🧪 Tests & Documentation (Priorité basse)
-- [ ] Tests unitaires (`pytest` ou `Vitest` selon choix)
-- [ ] Dossier `docs/` avec :
-  - Schéma de la base de données
-  - Documentation API (OpenAPI + résumé manuel)
-- [ ] Préparer le **diaporama de soutenance**
+### 5️⃣ Arrêts (Stop)
+- **POST /api/creat/stop** → création arrêt (vérification que la ligne existe)  
+- **GET /api/stop/{id}** → lecture arrêt par ID  
+- **PUT /api/update/stop/{id}** → mise à jour arrêt  
+- **DELETE /api/delete/stop/{id}** → suppression arrêt  
+- **GET /api/allstop** → liste de tous les arrêts  
 
 ---
 
-### 🧭 Ordre recommandé de développement
+## 🚧 Ce qui reste à faire / améliorations possibles
 
-1️⃣ → **Ajouter JWT & route de connexion**  
-2️⃣ → **Créer les modèles Category / Line / Stop**  
-3️⃣ → **Implémenter les endpoints REST principaux**  
-4️⃣ → **Tester les routes `/stats/distance/...`**  
-5️⃣ → **Protéger tous les endpoints par JWT**  
-6️⃣ → **Créer le mini-frontend Leaflet**  
-7️⃣ → **Finaliser la documentation et la soutenance**
+### 🔐 Authentification & sécurité
+- Ajouter la connexion utilisateur `/api/users/login`  
+- Implémenter JWT pour sécuriser les routes  
+- Restreindre l’accès à tous les endpoints (sauf signup/login)  
+
+### 🗺️ Gestion du réseau de transport
+- Endpoints avancés pour liaisons catégories/lignes/arrêts :  
+  - `GET /api/categories/{id}/lines` → lister toutes les lignes d’une catégorie  
+  - `GET /api/lines/{id}/stops` → lister tous les arrêts d’une ligne  
+  - `POST /api/lines/{id}/stops` → ajouter un arrêt sur une ligne  
+  - `DELETE /api/lines/{line_id}/stops/{stop_id}` → suppression d’un arrêt d’une ligne (pour l’instant, tu as juste `/api/delete/stop/{id}` qui supprime l’arrêt directement)  
+
+### 📏 Statistiques et calculs (GPS)
+- Calcul de distances entre arrêts ou lignes avec **geopy**  
+
+### 🖥️ Mini-Frontend
+- Carte Leaflet pour afficher les lignes et arrêts  
+- Pages Inscription / Connexion  
+- Appels API sécurisés avec token JWT  
+
+### 🧪 Tests & Documentation
+- Tests unitaires pour toutes les routes  
+- Documentation OpenAPI + résumé manuel  
+- Diagramme base de données et structure des endpoints  
 
 ---
 
-### 🗓️ Prochain objectif
+## 🧭 Notes techniques / choix faits
+- DELETE ligne ne supprime pas automatiquement les arrêts liés → choix simplifié pour ne pas gérer les cascades complexes.  
+- Hashage SHA256 utilisé pour l’instant → à remplacer par bcrypt pour la production.  
+- Les champs supplémentaires dans les schemas (`mots`, `motsWTF`) servent uniquement à tester l’affichage sans exposer le mot de passe.  
 
-> 🎯 **Prochaine étape : Authentification JWT complète**
->
-> - Création du module `auth.py`
-> - Ajout de `/api/users/login`
-> - Génération et validation des tokens
-> - Protection des routes avec `Depends(get_current_user)`
+EOF
+
+echo "README.md créé avec succès !"
 

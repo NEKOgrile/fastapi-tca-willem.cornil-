@@ -2,8 +2,8 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlmodel import SQLModel, Session
 from database import engine, get_session
-from models import Users        # ➜ User de la base de données (DB)
-from schemas.schemas import UserCreate, UserRead , UserUpdate , UserDelete , UserInDB # ➜ User de l'API
+from models import *        # ➜ User de la base de données (DB)
+from schemas.schemas import *
 import hashlib  # pour hasher le mot de passe (à remplacer par bcrypt en prod)
 
 app = FastAPI()
@@ -13,6 +13,10 @@ app = FastAPI()
 def on_startup():
     SQLModel.metadata.create_all(engine)
 
+
+#------------------------------------------------------------------------------
+# Endpoints pour la gestion des utilisateurs
+#------------------------------------------------------------------------------
 
 # --- Endpoint POST pour créer un utilisateur ---
 @app.post("/users", response_model=UserRead)
@@ -130,3 +134,284 @@ def delete_user(user_id: int, session: Session = Depends(get_session)):
 def get_all_users(session: Session = Depends(get_session)):
     users = session.query(Users).all()
     return users
+
+
+
+#----------------------------------------------------------------------
+# Ici on vas faire les endpoints pour les categories , les lignes de transport et les arrets
+#----------------------------------------------------------------------
+
+# --- Endpoints pour la creation de transport ---
+@app.post("/api/creat/category" , response_model=CategoryRead)
+def create_category(category_api: CategoryCreate, session: Session = Depends(get_session)):
+    db_category = categories(
+        name=category_api.name
+    )
+    
+    session.add(db_category)
+    session.commit()
+    session.refresh(db_category)
+    
+    
+    return db_category
+
+
+# --- Endpoints pour la lecture de transport ---
+@app.get("/api/category/{category_id}" , response_model=CategoryRead)
+def get_category(category_id: int, session: Session = Depends(get_session)):
+    db_category = session.get(categories, category_id)
+    if not db_category:
+        raise HTTPException(status_code=404, detail="Catégorie non trouvée")
+    return db_category
+
+
+# --- Endpoints pour la mise a jour de transport ---
+@app.put("/api/update/category/{category_id}" , response_model=CategoryUpdate)
+def update_category(category_id: int, category_update: CategoryUpdate, session: Session = Depends(get_session)):
+    db_category = session.get(categories, category_id)
+    if not db_category:
+        raise HTTPException(status_code=404, detail="Catégorie non trouvée")
+    
+    if category_update.name is not None:
+        existing_category_name = session.query(categories).filter(categories.name == category_update.name, categories.id != category_id).first()
+        if existing_category_name:
+            raise HTTPException(status_code=400, detail="le nom est déjà utilisé")
+        db_category.name = category_update.name
+        
+    category_api = CategoryUpdate(
+        name=db_category.name
+    )
+    
+    session.add(db_category)
+    session.commit()
+    session.refresh(db_category)
+    
+    return category_api
+
+
+# --- Endpoints pour la suppression de transport ---
+@app.delete("/api/delete/category/{category_id}" , response_model=CategoryDelete)
+def delete_category(category_id: int, session: Session = Depends(get_session)):
+    db_category = session.get(categories, category_id)
+    if not db_category:
+        raise HTTPException(status_code=404, detail="Catégorie non trouvée")
+    
+    category_api = CategoryDelete(
+        id=db_category.id,
+        name=db_category.name
+    )
+    
+    session.delete(db_category)
+    session.commit()
+    
+    return category_api
+
+
+# --- Endpoints pour la lecture de toutes les categories ---
+@app.get("/api/allcategory" , response_model=list[CategoryRead])
+def get_all_category(session: Session = Depends(get_session)):
+    category = session.query(categories).all()
+    return category
+
+#------------------------------------------------------------------------------
+# Endpoints pour la gestion des lignes de transport
+#------------------------------------------------------------------------------
+
+# --- Endpoints pour la creation de transport line ---
+@app.post("/api/creat/line" , response_model=TransportLineRead)
+def create_transport_line(line_api: TransportLineCreate, session: Session = Depends(get_session)):
+    # Vérifier si la catégorie existe
+    db_category = session.get(categories, line_api.category_id)
+    if not db_category:
+        raise HTTPException(status_code=404, detail="Catégorie non trouvée")
+    
+    db_line = TransportLine( 
+        name=line_api.name,
+        category_id=line_api.category_id,
+        start_time=line_api.start_time if line_api.start_time else time(5, 0),
+        end_time=line_api.end_time if line_api.end_time else time(23, 0)
+    )
+    
+    session.add(db_line)
+    session.commit()
+    session.refresh(db_line)
+    
+    return db_line
+
+# --- Endpoints pour la lecture de transport line ---
+@app.get("/api/line/{line_id}" , response_model=TransportLineRead)
+def get_transport_line(line_id: int, session: Session = Depends(get_session)):
+    db_line = session.get(TransportLine, line_id)
+    if not db_line:
+        raise HTTPException(status_code=404, detail="Ligne non trouvée")
+    return db_line
+
+
+# --- Endpoints pour la mise a jour de transport line ---
+@app.put("/api/update/line/{line_id}" , response_model=TransportLineUpdate)
+def update_transport_line(line_id: int, line_update: TransportLineUpdate, session: Session = Depends(get_session)):
+    db_line = session.get(TransportLine, line_id)
+    if not db_line:
+        raise HTTPException(status_code=404, detail="Ligne non trouvée")
+    
+    if line_update.name is not None:
+        existing_line_name = session.query(TransportLine).filter(TransportLine.name == line_update.name, TransportLine.id != line_id).first()
+        if existing_line_name:
+            raise HTTPException(status_code=400, detail="le nom est déjà utilisé")
+        db_line.name = line_update.name
+        
+    if line_update.category_id is not None:
+        # Vérifier si la nouvelle catégorie existe
+        db_category = session.get(categories, line_update.category_id)
+        if not db_category:
+            raise HTTPException(status_code=404, detail="Catégorie non trouvée")
+        db_line.category_id = line_update.category_id
+        
+    if line_update.start_time is not None:
+        db_line.start_time = line_update.start_time
+        
+    if line_update.end_time is not None:
+        db_line.end_time = line_update.end_time
+        
+    line_api = TransportLineUpdate(
+        name=db_line.name,
+        category_id=db_line.category_id,
+        start_time=db_line.start_time,
+        end_time=db_line.end_time
+    )
+    
+    session.add(db_line)
+    session.commit()
+    session.refresh(db_line)
+    
+    return line_api
+
+# --- Endpoints pour la suppression de transport line ---
+@app.delete("/api/delete/line/{line_id}" , response_model=TransportLineDelete)
+def delete_transport_line(line_id: int, session: Session = Depends(get_session)):
+    db_line = session.get(TransportLine, line_id)
+    if not db_line:
+        raise HTTPException(status_code=404, detail="Ligne non trouvée")
+    
+    line_api = TransportLineDelete(
+        id=db_line.id,
+        name=db_line.name,
+        category_id=db_line.category_id,
+        created_at=db_line.created_at,
+        start_time=db_line.start_time,
+        end_time=db_line.end_time
+    )
+    
+    session.delete(db_line)
+    session.commit()
+    
+    return line_api
+
+# --- Endpoints pour la lecture de toutes les lignes de transport ---
+@app.get("/api/allline" , response_model=list[TransportLineRead])
+def get_all_transport_lines(session: Session = Depends(get_session)):
+    lines = session.query(TransportLine).all()
+    return lines
+
+
+#------------------------------------------------------------------------------
+# Endpoints pour la gestion des arrêts
+#------------------------------------------------------------------------------
+
+# --- Endpoints pour la creation d'arrêt ---
+@app.post("/api/creat/stop" , response_model=StopRead)
+def create_stop(stop_api: StopCreate, session: Session = Depends(get_session)):
+    # Vérifier si la ligne de transport existe
+    db_line = session.get(TransportLine, stop_api.line_id)
+    if not db_line:
+        raise HTTPException(status_code=404, detail="Ligne de transport non trouvée")
+    
+    db_stop = Stop(
+        line_id=stop_api.line_id,
+        name=stop_api.name,
+        latitude=stop_api.latitude,
+        longitude=stop_api.longitude,
+        stop_order=stop_api.stop_order
+    )
+    
+    session.add(db_stop)
+    session.commit()
+    session.refresh(db_stop)
+    
+    return db_stop
+
+
+# --- Endpoints pour la lecture d'arrêt ---
+@app.get("/api/stop/{stop_id}" , response_model=StopRead)
+def get_stop(stop_id: int, session: Session = Depends(get_session)):
+    db_stop = session.get(Stop, stop_id)
+    if not db_stop:
+        raise HTTPException(status_code=404, detail="Arrêt non trouvé")
+    return db_stop
+
+# --- Endpoints pour la mise a jour d'arrêt ---
+@app.put("/api/update/stop/{stop_id}" , response_model=StopUpdate)
+def update_stop(stop_id: int, stop_update: StopUpdate, session: Session = Depends(get_session)):
+    db_stop = session.get(Stop, stop_id)
+    if not db_stop:
+        raise HTTPException(status_code=404, detail="Arrêt non trouvé")
+    
+    if stop_update.line_id is not None:
+        # Vérifier si la nouvelle ligne de transport existe
+        db_line = session.get(TransportLine, stop_update.line_id)
+        if not db_line:
+            raise HTTPException(status_code=404, detail="Ligne de transport non trouvée")
+        db_stop.line_id = stop_update.line_id
+        
+    if stop_update.name is not None:
+        db_stop.name = stop_update.name
+        
+    if stop_update.latitude is not None:
+        db_stop.latitude = stop_update.latitude
+        
+    if stop_update.longitude is not None:
+        db_stop.longitude = stop_update.longitude
+        
+    if stop_update.stop_order is not None:
+        db_stop.stop_order = stop_update.stop_order
+        
+    stop_api = StopUpdate(
+        line_id=db_stop.line_id,
+        name=db_stop.name,
+        latitude=db_stop.latitude,
+        longitude=db_stop.longitude,
+        stop_order=db_stop.stop_order
+    )
+    
+    session.add(db_stop)
+    session.commit()
+    session.refresh(db_stop)
+    
+    return stop_api
+
+# --- Endpoints pour la suppression d'arrêt ---
+@app.delete("/api/delete/stop/{stop_id}" , response_model=StopRead)
+def delete_stop(stop_id: int, session: Session = Depends(get_session)):
+    db_stop = session.get(Stop, stop_id)
+    if not db_stop:
+        raise HTTPException(status_code=404, detail="Arrêt non trouvé")
+    
+    stop_api = StopRead(
+        id=db_stop.id,
+        line_id=db_stop.line_id,
+        name=db_stop.name,
+        latitude=db_stop.latitude,
+        longitude=db_stop.longitude,
+        stop_order=db_stop.stop_order
+    )
+    
+    session.delete(db_stop)
+    session.commit()
+    
+    return stop_api
+
+# --- Endpoints pour la lecture de tous les arrêts ---
+@app.get("/api/allstop" , response_model=list[StopRead])
+def get_all_stops(session: Session = Depends(get_session)):
+    stops = session.query(Stop).all()
+    return stops

@@ -16,7 +16,7 @@ class Users(SQLModel, table=True):
 # -----------------------------
 # 🚍 Catégories (bus, métro, tramway)
 # -----------------------------
-class Category(SQLModel, table=True):
+class categories(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str
 
@@ -28,7 +28,7 @@ class Category(SQLModel, table=True):
 class TransportLine(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str
-    category_id: int = Field(foreign_key="category.id")
+    category_id: int = Field(foreign_key="categories.id")
     created_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
     start_time: time = Field(default=time(5, 0))   # 05:00 par défaut
     end_time: time = Field(default=time(23, 0))   # 23:00 par défaut
