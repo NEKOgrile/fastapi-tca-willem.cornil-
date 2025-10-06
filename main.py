@@ -3,7 +3,7 @@ from fastapi import FastAPI, Depends, HTTPException
 from sqlmodel import SQLModel, Session
 from database import engine, get_session
 from models import Users        # ➜ User de la base de données (DB)
-from schemas import UserCreate, UserRead , UserReadWTF , UserUpdate , UserDelete , UserInDB # ➜ User de l'API
+from schemas.schemas import UserCreate, UserRead , UserReadWTF , UserUpdate , UserDelete , UserInDB # ➜ User de l'API
 import hashlib  # pour hasher le mot de passe (à remplacer par bcrypt en prod)
 
 app = FastAPI()

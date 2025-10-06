@@ -1,0 +1,10 @@
+
+
+# Ignorer dossiers d'environnement et caches
+venv/
+node_modules/
+__pycache__/
+
+# Ignorer fichiers pycache partout
+**/__pycache__/
+**/*.pyc
