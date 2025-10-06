@@ -1,4 +1,3 @@
-
 # fastapi-tca-willem.cornil-
 
 Projet FastAPI avec MariaDB, gestion des utilisateurs et structure prête pour extension.
@@ -49,9 +48,32 @@ python -m venv venv
 python -m pip install --upgrade pip
 pip install fastapi uvicorn sqlmodel pymysql
 
+# Créer le fichier identifiant.json avec un exemple
+echo "{ \"user\": \"root\", \"password\": \"mdp\", \"host\": \"127.0.0.1\", \"port\": 3306, \"database\": \"project_API_TISSEA\" }" > identifiant.json
+
 # Lancer le serveur FastAPI
 uvicorn main:app --reload
 ```
+
+---
+
+## 🔑 Gestion des identifiants (identifiant.json)
+
+- Le fichier `identifiant.json` doit être **dans le dossier racine du projet**.  
+- Exemple de contenu :
+
+```json
+{
+    "user": "root",
+    "password": "mdp",
+    "host": "127.0.0.1",
+    "port": 3306,
+    "database": "project_API_TISSEA"
+}
+```
+
+- Si tu changes ton mot de passe ou le nom de la base, **mets à jour ce fichier**.  
+- `database.py` lit automatiquement ce fichier pour construire `DATABASE_URL`.
 
 ---
 
@@ -80,7 +102,7 @@ fastapi-tca-willem.cornil-/
 
 ## ⚡ Notes importantes
 
-1. Mettre à jour `DATABASE_URL` dans `database.py` avec vos identifiants MariaDB.
+1. Mettre à jour `identifiant.json` si vos informations de base changent.  
 2. Pour ajouter d’autres dépendances :  
 
 ```powershell
@@ -104,4 +126,3 @@ __pycache__/
 node_modules/
 *.pyc
 ```
-
