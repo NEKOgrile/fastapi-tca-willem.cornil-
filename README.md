@@ -156,7 +156,7 @@ Ci-dessous un résumé des tâches déjà effectuées et de celles encore à ré
 #### 🗺️ Gestion du réseau de transport (Priorité haute)
 - ✅ Créer les **modèles SQLModel** : `Category`, `TransportLine`, `Stop`
 - ✅ Créer les **schemas Pydantic** correspondants dans `schemas/`
-- Routes implémentées / à implémenter :
+- [ ] Routes implémentées / à implémenter :
   - ✅ `POST /api/creat/category` → création d’une catégorie
   - ✅ `GET /api/category/{id}` → lecture d’une catégorie par ID
   - ✅ `PUT /api/update/category/{id}` → mise à jour d’une catégorie
