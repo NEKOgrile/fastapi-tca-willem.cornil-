@@ -19,6 +19,23 @@ def on_startup():
 #------------------------------------------------------------------------------
 # Endpoints pour la gestion des utilisateurs
 #------------------------------------------------------------------------------
+@app.middleware("http")
+async def check_jwt(request: Request, call_next):
+    # Liste des routes publiques
+    public_paths = ["/users", "/docs"]
+
+    if request.url.path not in public_paths:
+        # Vérifie le header Authorization
+        auth = request.headers.get("Authorization")
+        if not auth or not auth.startswith("Bearer "):
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "Token manquant ou invalide"}
+            )
+        # Tu pourrais ici décoder et vérifier ton token JWT
+
+    response = await call_next(request)
+    return response
 
 # --- Endpoint POST pour créer un utilisateur ---
 @app.post("/users", response_model=UserRead)
