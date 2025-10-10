@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Login API</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* Style du petit popup d'erreur */
+    .popup-error {
+      position: absolute;
+      top: -35px;
+      left: 0;
+      right: 0;
+      margin: 0 auto;
+      width: 90%;
+      background: #ff4d4f;
+      color: white;
+      text-align: center;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      animation: fadeInDown 0.4s ease;
+      z-index: 5;
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .form-group {
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="auth-card">
+    <h1>Connexion</h1>
+
+    <form id="loginForm">
+      <div class="form-group" id="emailGroup">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Mot de passe</label>
+        <input type="password" id="password" name="password" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary">Se connecter</button>
+    </form>
+
+    <p class="link-text">
+      Pas encore de compte ? <a href="register.html">S'inscrire</a>
+    </p>
+
+    <div id="error" class="error-message"></div>
+  </div>
+</div>
+
+<script>
+const form = document.getElementById("loginForm");
+const emailGroup = document.getElementById("emailGroup");
+
+function showPopupError(message) {
+  // Supprimer une ancienne popup si elle existe
+  const oldPopup = document.querySelector(".popup-error");
+  if (oldPopup) oldPopup.remove();
+
+  const popup = document.createElement("div");
+  popup.classList.add("popup-error");
+  popup.textContent = message;
+  emailGroup.appendChild(popup);
+
+  // Supprime la popup après 3 secondes
+  setTimeout(() => popup.remove(), 3000);
+}
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const email = form.email.value;
+  const password = form.password.value;
+
+  try {
+    const response = await fetch("api.php?endpoint=token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        grant_type: "password",
+        username: email,
+        password: password,
+        scope: "",
+        client_id: "string",
+        client_secret: ""
+      })
+    });
+
+    if (!response.ok) {
+      showPopupError("❌ Erreur API, vérifie tes identifiants");
+      return;
+    }
+
+    const data = await response.json();
+
+    if (data.access_token) {
+      localStorage.setItem("access_token", data.access_token);
+      console.log("✅ Token stocké :", data.access_token);
+      window.location.href = "dashboard.html";
+    } else {
+      showPopupError("⚠️ Identifiants invalides ou token manquant");
+    }
+
+  } catch (err) {
+    console.error("Erreur fetch :", err);
+    showPopupError("⚠️ Erreur de connexion au serveur");
+  }
+});
+</script>
+</body>
+</html>

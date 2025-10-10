@@ -1,0 +1,18 @@
+# --- Framework principal ---
+fastapi==0.115.0
+uvicorn==0.23.1
+
+# --- Base de données & ORM ---
+sqlmodel==0.0.8
+SQLAlchemy==2.0.30
+pymysql==1.1.0
+
+# --- Sécurité & Authentification ---
+python-jose==3.3.0
+passlib[bcrypt]==1.7.4
+bcrypt==4.1.2
+
+# --- Outils & utilitaires ---
+pydantic==1.10.14
+python-dotenv==1.0.1
+geopy==2.4.1  # Pour les calculs de distance GPS

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard TISSÉA</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f5f7fa;
+  margin: 0;
+  padding: 0;
+}
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px;
+}
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fff;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  border-radius: 10px;
+  margin-bottom: 30px;
+}
+.dashboard-header h1 {
+  font-size: 24px;
+  color: #2c3e50;
+}
+.dashboard-header button {
+  background: #e74c3c;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.data-section {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  margin-bottom: 30px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.data-section h2 {
+  margin-bottom: 20px;
+  color: #2c3e50;
+}
+.table-container {
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th, td {
+  padding: 12px;
+  border-bottom: 1px solid #ddd;
+  text-align: left;
+}
+th {
+  background: #667eea;
+  color: white;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+tbody tr:hover {
+  background: #f0f0f0;
+  cursor: pointer;
+}
+#map {
+  height: 400px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+}
+.popup-error {
+  background: #ff4d4f;
+  color: white;
+  text-align: center;
+  padding: 8px 10px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  animation: fadeIn 0.3s ease;
+  display:none;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px);}
+  to { opacity: 1; transform: translateY(0);}
+}
+</style>
+</head>
+<body>
+
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <h1>Dashboard TISSÉA</h1>
+    <button id="logoutBtn">Déconnexion</button>
+  </div>
+
+  <div id="errorPopup" class="popup-error"></div>
+
+  <!-- Lignes -->
+  <div class="data-section">
+    <h2>Liste des lignes de transport</h2>
+    <div class="table-container">
+      <table id="linesTable">
+        <thead>
+          <tr><th>ID</th><th>Nom</th><th>Catégorie</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Carte + Arrêts -->
+  <div class="data-section">
+    <h2>Carte et arrêts de la ligne sélectionnée</h2>
+    <div id="map"></div>
+    <div class="table-container">
+      <table id="stopsTable">
+        <thead>
+          <tr><th>Ordre</th><th>Nom</th><th>Latitude</th><th>Longitude</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+const token = localStorage.getItem("access_token");
+const errorPopup = document.getElementById("errorPopup");
+const logoutBtn = document.getElementById("logoutBtn");
+let map;
+let stopMarkers = [];
+
+// Redirection si non connecté
+if (!token) window.location.href = "index.html";
+
+// Popup erreur
+function showError(message) {
+  errorPopup.textContent = message;
+  errorPopup.style.display = "block";
+  setTimeout(() => errorPopup.style.display = "none", 3000);
+}
+
+// Fetch avec token
+async function fetchWithToken(endpoint) {
+  try {
+    const res = await fetch(`api.php?endpoint=${endpoint}`, {
+      headers: { "Authorization": "Bearer " + token, "Accept": "application/json" }
+    });
+    const text = await res.text();
+    try { return JSON.parse(text); }
+    catch { showError("Erreur parsing JSON pour " + endpoint); return []; }
+  } catch(err) {
+    showError("Erreur fetch pour " + endpoint); return [];
+  }
+}
+
+// Charger lignes
+(async () => {
+  const categories = await fetchWithToken("api/allcategory");
+  const categoriesMap = {};
+  categories.forEach(c => { categoriesMap[c.id] = c.name; });
+
+  const lines = await fetchWithToken("api/allline");
+  const tbody = document.querySelector("#linesTable tbody");
+
+  lines.forEach(line => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${line.id}</td><td>${line.name}</td><td>${categoriesMap[line.category_id] || line.category_id}</td>`;
+    tr.addEventListener("click", () => showMapAndStops(line));
+    tbody.appendChild(tr);
+  });
+})();
+
+// Afficher la carte et les arrêts d'une ligne
+async function showMapAndStops(line) {
+  const stops = await fetchWithToken("api/allstop");
+  const lineStops = stops.filter(s => s.line_id === line.id);
+
+  if (lineStops.length === 0) {
+    showError("Aucun arrêt trouvé pour cette ligne");
+    return;
+  }
+
+  // Initialiser ou réinitialiser la carte
+  if (!map) {
+    map = L.map('map').setView([lineStops[0].latitude, lineStops[0].longitude], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+  } else {
+    map.eachLayer(layer => {
+      if (layer instanceof L.Marker || layer instanceof L.Polyline) map.removeLayer(layer);
+    });
+    stopMarkers = [];
+    map.setView([lineStops[0].latitude, lineStops[0].longitude], 13);
+  }
+
+  const latlngs = [];
+  const tbody = document.querySelector("#stopsTable tbody");
+  tbody.innerHTML = "";
+
+  lineStops.forEach(s => {
+    latlngs.push([s.latitude, s.longitude]);
+    const marker = L.marker([s.latitude, s.longitude])
+      .addTo(map)
+      .bindPopup(`<b>${s.name}</b><br>Ordre: ${s.stop_order}`);
+    stopMarkers.push(marker);
+
+    // Ajouter au tableau
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${s.stop_order}</td><td>${s.name}</td><td>${s.latitude}</td><td>${s.longitude}</td>`;
+    tr.addEventListener("click", () => {
+      map.setView([s.latitude, s.longitude], 16);
+      marker.openPopup();
+    });
+    tbody.appendChild(tr);
+  });
+
+  if (latlngs.length > 1) L.polyline(latlngs, {color: 'blue'}).addTo(map);
+}
+
+// Déconnexion
+logoutBtn.addEventListener("click", () => {
+  localStorage.removeItem("access_token");
+  window.location.href = "index.html";
+});
+</script>
+
+</body>
+</html>

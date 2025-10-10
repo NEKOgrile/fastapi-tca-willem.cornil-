@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard - Utilisateurs & Catégories</title>
+<style>
+table { border-collapse: collapse; width: 80%; margin-bottom: 30px; }
+th, td { border: 1px solid #333; padding: 8px; text-align: left; }
+th { background-color: #eee; }
+button { margin-bottom: 20px; }
+</style>
+</head>
+<body>
+
+<h2>Liste des utilisateurs</h2>
+<button id="logoutBtn">Déconnexion</button>
+<table id="usersTable">
+  <thead>
+    <tr><th>ID</th><th>Nom</th><th>Email</th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
+<pre id="debugUsers"></pre>
+
+<h2>Liste des catégories</h2>
+<table id="categoriesTable">
+  <thead>
+    <tr><th>ID</th><th>Nom</th></tr>
+  </thead>
+  <tbody></tbody>
+</table>
+<pre id="debugCategories"></pre>
+
+<script>
+const usersTableBody = document.querySelector("#usersTable tbody");
+const categoriesTableBody = document.querySelector("#categoriesTable tbody");
+const debugUsers = document.getElementById("debugUsers");
+const debugCategories = document.getElementById("debugCategories");
+const logoutBtn = document.getElementById("logoutBtn");
+
+const token = localStorage.getItem("access_token");
+
+// Si pas de token → redirection vers login
+if (!token) {
+    alert("Vous n'êtes pas connecté !");
+    window.location.href = "index.html";
+}
+
+// 🔹 Fonction générique pour fetch avec token
+async function fetchWithToken(endpoint) {
+    try {
+        const res = await fetch(`api.php?endpoint=${endpoint}`, {
+            method: "GET",
+            headers: {
+                "Authorization": "Bearer " + token,
+                "Accept": "application/json"
+            }
+        });
+        const text = await res.text();
+        return JSON.parse(text);
+    } catch(err) {
+        throw err;
+    }
+}
+
+// 🔹 Charger les utilisateurs
+fetchWithToken("allusers")
+
+.then(users => {
+    users.forEach(u => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${u.id}</td><td>${u.username}</td><td>${u.email}</td>`;
+        usersTableBody.appendChild(tr);
+    });
+})
+.catch(err => {
+    debugUsers.textContent = "Erreur fetch utilisateurs : " + err;
+});
+
+// 🔹 Charger les catégories
+fetchWithToken("api/allcategory")
+.then(categories => {
+    categories.forEach(c => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${c.id}</td><td>${c.name}</td>`;
+        categoriesTableBody.appendChild(tr);
+    });
+})
+.catch(err => {
+    debugCategories.textContent = "Erreur fetch catégories : " + err;
+});
+
+// 🔹 Déconnexion
+logoutBtn.addEventListener("click", () => {
+    localStorage.removeItem("access_token");
+    window.location.href = "index.html";
+});
+</script>
+
+</body>
+</html>
