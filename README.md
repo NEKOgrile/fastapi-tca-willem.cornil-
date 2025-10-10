@@ -163,9 +163,9 @@ Ci-dessous un résumé des tâches déjà effectuées et de celles encore à ré
 
 #### 🔐 Authentification & Sécurité (Priorité haute)
 
-- ❌ Ajouter la **connexion utilisateur** (`/api/users/login`)
-- ❌ Implémenter **JWT** (connexion, vérification, dépendance `get_current_user`)
-- ❌ Restreindre l’accès à tous les endpoints de l’API (sauf signup/login)
+- ✅ Ajouter la **connexion utilisateur** (`/api/users/login`)
+- ✅ Implémenter **JWT** (connexion, vérification, dépendance `get_current_user`)
+- ✅ Restreindre l’accès à tous les endpoints de l’API (sauf signup/login)
 
 #### 🗺️ Gestion du réseau de transport (Priorité haute)
 
@@ -216,13 +216,13 @@ Ci-dessous un résumé des tâches déjà effectuées et de celles encore à ré
 
 #### 🖥️ Mini-Frontend (Priorité moyenne)
 
-- ❌ Page **Accueil**
+- ✅ Page **Accueil**
 
-- ❌ Page **Inscription / Connexion**
+- ✅ Page **Inscription / Connexion**
 
-- ❌ Page **Carte Leaflet** affichant au moins une ligne (ex. Métro B)
+- ✅ Page **Carte Leaflet** affichant au moins une ligne (ex. Métro B)
 
-- ❌ Appels API sécurisés avec token JWT
+- ✅ Appels API sécurisés avec token JWT
 
 #### 🧪 Tests & Documentation (Priorité basse)
 
