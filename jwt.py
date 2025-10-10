@@ -8,19 +8,18 @@ from datetime import datetime, timedelta
 SECRET_KEY = "ton_secret_key_super_secret"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
-MAX_BCRYPT_LEN = 72  # Limite bcrypt
 
-# --- Utilitaires ---
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# --- Sécurité des mots de passe ---
+pwd_context = CryptContext(schemes=["sha256_crypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 def hash_password(password: str) -> str:
-    """Hash le mot de passe en tronquant à 72 caractères pour bcrypt."""
-    return pwd_context.hash(password[:MAX_BCRYPT_LEN])
+    """Hash le mot de passe"""
+    return pwd_context.hash(password)
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Vérifie le mot de passe en tronquant à 72 caractères."""
-    return pwd_context.verify(plain_password[:MAX_BCRYPT_LEN], hashed_password)
+    """Vérifie le mot de passe"""
+    return pwd_context.verify(plain_password, hashed_password)
 
 # --- Simule une base de données ---
 fake_users_db = {
@@ -28,7 +27,7 @@ fake_users_db = {
         "username": "vincent",
         "full_name": "Vincent Gaboret",
         "email": "vincent@example.com",
-        "hashed_password": pwd_context.hash("mon_mdp123"),
+        "hashed_password": hash_password("mon_mdp123"),  # mot de passe simple
         "disabled": False,
     }
 }
