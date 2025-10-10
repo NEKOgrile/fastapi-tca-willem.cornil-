@@ -357,8 +357,26 @@ def delete_transport_line(line_id: int, session: Session = Depends(get_session))
 # --- Endpoints pour la lecture de toutes les lignes de transport ---
 @app.get("/api/allline" , response_model=list[TransportLineRead])
 def get_all_transport_lines(session: Session = Depends(get_session)):
-    lines = session.query(TransportLine).all()
-    return lines
+    try:
+        lines = session.query(TransportLine).all()
+        # Convert DB models to response schema explicitly to avoid serialization surprises
+        result: list[TransportLineRead] = []
+        for l in lines:
+            created_at = l.created_at.isoformat() if getattr(l, 'created_at', None) is not None else None
+            start_time = l.start_time.isoformat() if getattr(l, 'start_time', None) is not None else None
+            end_time = l.end_time.isoformat() if getattr(l, 'end_time', None) is not None else None
+            result.append(TransportLineRead(
+                id=l.id,
+                name=l.name,
+                category_id=l.category_id,
+                created_at=created_at,
+                start_time=start_time,
+                end_time=end_time,
+            ))
+        return result
+    except Exception as e:
+        # Return a 500 with the error message to help debugging (remove message in prod)
+        raise HTTPException(status_code=500, detail=f"Erreur serveur: {e}")
 
 #------------------------------------------------------------------------------
 # Endpoints pour la gestion des arrêts
