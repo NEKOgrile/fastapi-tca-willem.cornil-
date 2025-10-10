@@ -8,26 +8,32 @@ from datetime import datetime, timedelta
 SECRET_KEY = "ton_secret_key_super_secret"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+MAX_BCRYPT_LEN = 72  # Limite bcrypt
 
 # --- Utilitaires ---
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-# Simule une base de données
+def hash_password(password: str) -> str:
+    """Hash le mot de passe en tronquant à 72 caractères pour bcrypt."""
+    return pwd_context.hash(password[:MAX_BCRYPT_LEN])
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    """Vérifie le mot de passe en tronquant à 72 caractères."""
+    return pwd_context.verify(plain_password[:MAX_BCRYPT_LEN], hashed_password)
+
+# --- Simule une base de données ---
 fake_users_db = {
     "vincent": {
         "username": "vincent",
         "full_name": "Vincent Gaboret",
         "email": "vincent@example.com",
-        "hashed_password": pwd_context.hash("ton_mot_de_passe_tres_long"),
+        "hashed_password": hash_password("ton_mot_de_passe_tres_long"),
         "disabled": False,
     }
 }
 
 # --- Fonctions de sécurité ---
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
-
 def authenticate_user(username: str, password: str):
     user = fake_users_db.get(username)
     if not user or not verify_password(password, user["hashed_password"]):
@@ -36,7 +42,7 @@ def authenticate_user(username: str, password: str):
 
 def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))
+    expire = datetime.utcnow() + (expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
