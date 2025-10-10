@@ -1,40 +1,15 @@
 # main.py
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel import SQLModel, Session
 from database import engine, get_session
 from models import *        # ➜ User de la base de données (DB)
 from schemas.schemas import *
-from jwt import authenticate_user, create_access_token, get_current_user, fake_users_db
 
 import hashlib  # pour hasher le mot de passe (à remplacer par bcrypt en prod)
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+from auth import create_access_token, verify_token, oauth2_scheme
 app = FastAPI()
-
-#------------------------------------------------------------------------------
-# Authentification fake JWT
-def get_current_user(token: str = Depends(oauth2_scheme)):
-    payload = decode_access_token(token)
-    if payload is None:
-        raise HTTPException(status_code=401, detail="Invalid token")
-    username = payload.get("sub")
-    user = fake_users_db.get(username)
-    if user is None:
-        raise HTTPException(status_code=401, detail="User not found")
-    return user
-
-@app.post("/token")
-def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = authenticate_user(form_data.username, form_data.password)
-    if not user:
-        raise HTTPException(status_code=401, detail="Incorrect username or password")
-    access_token = create_access_token({"sub": user["username"]})
-    return {"access_token": access_token, "token_type": "bearer"}
-
-@app.get("/users/me")
-def read_users_me(current_user: dict = Depends(get_current_user)):
-    return current_user
-#------------------------------------------------------------------------------
 
 # --- Création des tables à chaque démarrage si elles n'existent pas ---
 @app.on_event("startup")
@@ -76,6 +51,29 @@ def create_user(user_api: UserCreate, session: Session = Depends(get_session)):
     # Retourner une réponse API (UserRead) sans mot de passe
     return db_user
 
+@app.middleware("http")
+async def jwt_middleware(request: Request, call_next):
+    # Exempt paths: openapi, docs, redoc and token endpoint
+    path = request.url.path
+    if path.startswith("/docs") or path.startswith("/openapi.json") or path.startswith("/redoc") or path == "/token":
+        return await call_next(request)
+
+    auth_header = request.headers.get("authorization")
+    if not auth_header:
+        raise HTTPException(status_code=401, detail="Missing authorization header")
+
+    try:
+        scheme, token = auth_header.split()
+    except ValueError:
+        raise HTTPException(status_code=401, detail="Invalid authorization header format")
+
+    if scheme.lower() != "bearer":
+        raise HTTPException(status_code=401, detail="Invalid auth scheme")
+
+    # verify token (will raise HTTPException on failure)
+    verify_token(token)
+
+    return await call_next(request)
 # --- Endpoint GET pour récupérer un utilisateur par ID ---
 @app.get("/users/{user_id}", response_model=UserRead)
 def get_read_user_wtf(user_id: int, session = Depends(get_session)):
@@ -97,6 +95,22 @@ def get_read_user_wtf(user_id: int, session = Depends(get_session)):
         motsWTF="Message forcé"
     )
     return user_api
+
+
+# Token endpoint for OAuth2 password flow
+@app.post("/token")
+def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(get_session)):
+    # form_data.username is expected to be the email here
+    user = session.query(Users).filter(Users.email == form_data.username).first()
+    if not user:
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
+
+    hashed_pwd = hashlib.sha256(form_data.password.encode()).hexdigest()
+    if hashed_pwd != user.hashed_password:
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
+
+    access_token = create_access_token(data={"sub": str(user.id), "email": user.email})
+    return {"access_token": access_token, "token_type": "bearer"}
 
 # --- Endpoint PUT pour mettre à jour un utilisateur ---
 @app .put("/update/users/{user_id}", response_model=UserUpdate)
