@@ -28,7 +28,7 @@ fake_users_db = {
         "username": "vincent",
         "full_name": "Vincent Gaboret",
         "email": "vincent@example.com",
-        "hashed_password": hash_password("ton_mot_de_passe_tres_long"),
+        "hashed_password": pwd_context.hash("mon_mdp123"),
         "disabled": False,
     }
 }
