@@ -3,7 +3,7 @@ from fastapi import FastAPI, Depends, HTTPException, Request
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel import SQLModel, Session
 from database import engine, get_session
-from models import *        # ➜ User de la base de données (DB)
+from models import *
 from schemas.schemas import *
 
 import hashlib  # pour hasher le mot de passe (à remplacer par bcrypt en prod)
@@ -74,6 +74,7 @@ async def jwt_middleware(request: Request, call_next):
     verify_token(token)
 
     return await call_next(request)
+    
 # --- Endpoint GET pour récupérer un utilisateur par ID ---
 @app.get("/users/{user_id}", response_model=UserRead)
 def get_read_user_wtf(user_id: int, session = Depends(get_session)):
@@ -170,13 +171,13 @@ def delete_user(user_id: int, session: Session = Depends(get_session)):
 
     return user_api
 
-# --- Endpoint GET pour récupérer tous les utilisateurs ---
-@app.get("/allusers", response_model=list[UserInDB])
+@app.get("/allusers")
 def get_all_users(session: Session = Depends(get_session)):
     users = session.query(Users).all()
-    return users
-
-
+    return [
+        {"id": u.id, "username": u.username, "email": u.email}
+        for u in users
+    ]
 
 #----------------------------------------------------------------------
 # Ici on vas faire les endpoints pour les categories , les lignes de transport et les arrets
@@ -193,9 +194,7 @@ def create_category(category_api: CategoryCreate, session: Session = Depends(get
     session.commit()
     session.refresh(db_category)
     
-    
     return db_category
-
 
 # --- Endpoints pour la lecture de transport ---
 @app.get("/api/category/{category_id}" , response_model=CategoryRead)
@@ -204,7 +203,6 @@ def get_category(category_id: int, session: Session = Depends(get_session)):
     if not db_category:
         raise HTTPException(status_code=404, detail="Catégorie non trouvée")
     return db_category
-
 
 # --- Endpoints pour la mise a jour de transport ---
 @app.put("/api/update/category/{category_id}" , response_model=CategoryUpdate)
@@ -229,7 +227,6 @@ def update_category(category_id: int, category_update: CategoryUpdate, session: 
     
     return category_api
 
-
 # --- Endpoints pour la suppression de transport ---
 @app.delete("/api/delete/category/{category_id}" , response_model=CategoryDelete)
 def delete_category(category_id: int, session: Session = Depends(get_session)):
@@ -246,7 +243,6 @@ def delete_category(category_id: int, session: Session = Depends(get_session)):
     session.commit()
     
     return category_api
-
 
 # --- Endpoints pour la lecture de toutes les categories ---
 @app.get("/api/allcategory" , response_model=list[CategoryRead])
@@ -286,7 +282,6 @@ def get_transport_line(line_id: int, session: Session = Depends(get_session)):
     if not db_line:
         raise HTTPException(status_code=404, detail="Ligne non trouvée")
     return db_line
-
 
 # --- Endpoints pour la mise a jour de transport line ---
 @app.put("/api/update/line/{line_id}" , response_model=TransportLineUpdate)
@@ -354,7 +349,6 @@ def get_all_transport_lines(session: Session = Depends(get_session)):
     lines = session.query(TransportLine).all()
     return lines
 
-
 #------------------------------------------------------------------------------
 # Endpoints pour la gestion des arrêts
 #------------------------------------------------------------------------------
@@ -380,7 +374,6 @@ def create_stop(stop_api: StopCreate, session: Session = Depends(get_session)):
     session.refresh(db_stop)
     
     return db_stop
-
 
 # --- Endpoints pour la lecture d'arrêt ---
 @app.get("/api/stop/{stop_id}" , response_model=StopRead)
