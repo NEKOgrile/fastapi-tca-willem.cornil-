@@ -4,15 +4,42 @@ from sqlmodel import SQLModel, Session
 from database import engine, get_session
 from models import *        # ➜ User de la base de données (DB)
 from schemas.schemas import *
+from jwt import authenticate_user, create_access_token, decode_access_token, fake_users_db
+
 import hashlib  # pour hasher le mot de passe (à remplacer par bcrypt en prod)
 
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 app = FastAPI()
+
+#------------------------------------------------------------------------------
+# Authentification JWT
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    payload = decode_access_token(token)
+    if payload is None:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    username = payload.get("sub")
+    user = fake_users_db.get(username)
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+    return user
+
+@app.post("/token")
+def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    user = authenticate_user(form_data.username, form_data.password)
+    if not user:
+        raise HTTPException(status_code=401, detail="Incorrect username or password")
+    access_token = create_access_token({"sub": user["username"]})
+    return {"access_token": access_token, "token_type": "bearer"}
+
+@app.get("/users/me")
+def read_users_me(current_user: dict = Depends(get_current_user)):
+    return current_user
+#------------------------------------------------------------------------------
 
 # --- Création des tables à chaque démarrage si elles n'existent pas ---
 @app.on_event("startup")
 def on_startup():
     SQLModel.metadata.create_all(engine)
-
 
 #------------------------------------------------------------------------------
 # Endpoints pour la gestion des utilisateurs
