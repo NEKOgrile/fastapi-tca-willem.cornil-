@@ -13,7 +13,7 @@ if (!empty($allHeaders['Authorization'])) {
 }
 
 // URL finale de l'API distante
-$apiUrl = "http://frontvw.vicode.agency/" . $endpoint;
+$apiUrl = "http://apivw.vicode.agency/" . $endpoint;
 
 // Initialiser cURL
 $ch = curl_init($apiUrl);
