@@ -415,3 +415,104 @@ def delete_stop(stop_id: int, session: Session = Depends(get_session)):
 def get_all_stops(session: Session = Depends(get_session)):
     stops = session.query(Stop).all()
     return stops
+
+
+
+#-----------------------------
+#recupere tout les lignes appartenant a une categorie
+
+@app.get("/api/category/{category_id}/lines", response_model=list[TransportLineRead])
+def get_lines_by_category(category_id: int, session: Session = Depends(get_session)):
+    db_category = session.get(categories, category_id)
+    if not db_category:
+        raise HTTPException(status_code=404, detail="Catégorie non trouvée")
+    
+    lines = session.query(TransportLine).filter(TransportLine.category_id == category_id).all()
+    return lines
+
+
+
+
+#recupere tout les arrets appartenant a une ligne de transport dans l'ordre des arrets
+
+@app.get("/api/line/{line_id}/stops", response_model=list[StopRead])
+def get_stops_by_line(line_id: int, session: Session = Depends(get_session)):
+    db_line = session.get(TransportLine, line_id)
+    if not db_line:
+        raise HTTPException(status_code=404, detail="Ligne de transport non trouvée")
+    
+    stops = session.query(Stop).filter(Stop.line_id == line_id).order_by(Stop.stop_order).all()
+    return stops
+
+
+
+#recupere tout les arrets appartenant a une categorie de transport (bus, metro, tramway)
+
+@app.get("/api/category/{category_id}/stops", response_model=list[StopRead])
+def get_stops_by_category(category_id: int, session: Session = Depends(get_session)):
+    db_category = session.get(categories, category_id)
+    if not db_category:
+        raise HTTPException(status_code=404, detail="Catégorie non trouvée")
+    
+    stops = session.query(Stop).join(TransportLine).filter(TransportLine.category_id == category_id).order_by(Stop.line_id, Stop.stop_order).all()
+    return stops
+
+
+#-----------------------------
+
+#ajouter un nouvelle arrét a une ligne existante
+@app.post("/api/line/{line_id}/add_stop", response_model=StopRead)
+def add_stop_to_line(line_id: int, stop_api: StopCreate, session: Session = Depends(get_session)):
+    db_line = session.get(TransportLine, line_id)
+    if not db_line:
+        raise HTTPException(status_code=404, detail="Ligne de transport non trouvée")
+    
+    if stop_api.line_id != line_id:
+        raise HTTPException(status_code=400, detail="L'ID de la ligne dans le corps de la requête doit correspondre à l'ID de la ligne dans l'URL")
+    
+    db_stop = Stop(
+        line_id=line_id,
+        name=stop_api.name,
+        latitude=stop_api.latitude,
+        longitude=stop_api.longitude,
+        stop_order=stop_api.stop_order
+    )
+    
+    session.add(db_stop)
+    session.commit()
+    session.refresh(db_stop)
+    
+    return db_stop
+
+#supprumer un arrét d une ligne existante sans casser la séquence des ordres
+@app.delete("/api/line/{line_id}/remove_stop/{stop_id}", response_model=StopRead)
+def remove_stop_from_line(line_id: int, stop_id: int, session: Session = Depends(get_session)):
+    db_line = session.get(TransportLine, line_id)
+    if not db_line:
+        raise HTTPException(status_code=404, detail="Ligne de transport non trouvée")
+    
+    db_stop = session.get(Stop, stop_id)
+    if not db_stop or db_stop.line_id != line_id:
+        raise HTTPException(status_code=404, detail="Arrêt non trouvé pour cette ligne")
+    
+    stop_api = StopRead(
+        id=db_stop.id,
+        line_id=db_stop.line_id,
+        name=db_stop.name,
+        latitude=db_stop.latitude,
+        longitude=db_stop.longitude,
+        stop_order=db_stop.stop_order
+    )
+    
+    # Supprimer l'arrêt
+    session.delete(db_stop)
+    
+    # Mettre à jour les ordres des autres arrêts
+    subsequent_stops = session.query(Stop).filter(Stop.line_id == line_id, Stop.stop_order > db_stop.stop_order).all()
+    for stop in subsequent_stops:
+        stop.stop_order -= 1
+        session.add(stop)
+    
+    session.commit()
+    
+    return stop_api
