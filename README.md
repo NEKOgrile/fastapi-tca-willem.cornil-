@@ -173,7 +173,7 @@ Ci-dessous un résumé des tâches déjà effectuées et de celles encore à ré
 
 - ✅ Créer les **schemas Pydantic** correspondants dans `schemas/`
 
-- ❌ Routes implémentées / à implémenter :
+- ✅ Routes implémentées / à implémenter :
 
   **Catégories :**
   
@@ -201,10 +201,10 @@ Ci-dessous un résumé des tâches déjà effectuées et de celles encore à ré
 
   **Routes avancées à implémenter :**
   
-  - ❌ `GET /api/categories/{id}/lines` → lister toutes les lignes d’une catégorie
-  - ❌ `GET /api/lines/{id}/stops` → lister tous les arrêts d’une ligne
-  - ❌ `POST /api/lines/{id}/stops` → ajouter un arrêt sur une ligne
-  - ❌ `DELETE /api/lines/{line_id}/stops/{stop_id}` → suppression d’un arrêt d’une ligne (pour l’instant, `/api/delete/stop/{id}` supprime l’arrêt directement)
+  - ✅ `GET /api/categories/{id}/lines` → lister toutes les lignes d’une catégorie
+  - ✅ `GET /api/lines/{id}/stops` → lister tous les arrêts d’une ligne
+  - ✅ `POST /api/lines/{id}/stops` → ajouter un arrêt sur une ligne
+  - ✅ `DELETE /api/lines/{line_id}/stops/{stop_id}` → suppression d’un arrêt d’une ligne (pour l’instant, `/api/delete/stop/{id}` supprime l’arrêt directement)
 
 #### 📏 Statistiques et calculs (Priorité moyenne)
 
