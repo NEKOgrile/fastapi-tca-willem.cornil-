@@ -64,6 +64,8 @@ async def jwt_middleware(request: Request, call_next):
         or path.startswith("/redoc")
         or path == "/token"
         or (path == "/users" and request.method == "POST")
+        or (path == "/api/allline" and request.method == "GET")
+
     ):
         return await call_next(request)
 
