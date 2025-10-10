@@ -4,7 +4,7 @@ from sqlmodel import SQLModel, Session
 from database import engine, get_session
 from models import *        # ➜ User de la base de données (DB)
 from schemas.schemas import *
-from jwt import authenticate_user, create_access_token, decode_access_token, fake_users_db
+from jwt import authenticate_user, create_access_token, get_current_user, fake_users_db
 
 import hashlib  # pour hasher le mot de passe (à remplacer par bcrypt en prod)
 
