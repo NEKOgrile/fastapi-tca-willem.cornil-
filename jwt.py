@@ -14,8 +14,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 def hash_password(password: str) -> str:
-    """Hash le mot de passe"""
-    return pwd_context.hash(password)
+    return pwd_context.hash(password[:MAX_BCRYPT_LEN])
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Vérifie le mot de passe"""
